@@ -19,6 +19,8 @@ const { addUserData,
     applyVoucher,
     getTestimonials,
     getSingleProduct,
+    getHeader,
+    getBrand,
 } = require('../Controllers/userController')
 
 // router.post('/addUser', addUserData)
@@ -40,6 +42,8 @@ router.delete("/removeCart", removeFromCart);
 router.put("/cartUpdateQty", updateCartQuantity);
 router.post('/applyVoucher', applyVoucher);
 router.get('/getTestimonials', getTestimonials);
+router.get('/header', getHeader);
+router.get('/getBrand', getBrand);
 
 // ongoing
 

@@ -6,7 +6,8 @@ const CATEGORY = require('../Models/categoryModel');
 const BLOG = require('../Models/blogModel');
 const VOUCHER = require('../Models/voucher')
 const TESTIMONIAL = require('../Models/testimonialModels')
-
+const HEADER = require('../Models/headerModels')
+const BRAND = require('../Models/brandModels')
 // const addUserData =async(req,res)=>{
 
 //   try {
@@ -393,6 +394,27 @@ const getTestimonials = async (req, res) => {
 };
 
 
+const getHeader = async (req, res) => {
+  try {
+    const header = await HEADER.find();
+    res.status(200).json({ message: "Header fetched successfully", data: header });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+
+const getBrand = async (req, res) => {
+  try {
+    const brand = await BRAND.find();
+    res.status(200).json({ message: "brand fetched successfully", data: brand });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+
+
 module.exports = {
   getProduct,
   getcategory,
@@ -412,4 +434,6 @@ module.exports = {
   updateCartQuantity,
   applyVoucher,
   getTestimonials,
+  getHeader ,
+   getBrand,
 }

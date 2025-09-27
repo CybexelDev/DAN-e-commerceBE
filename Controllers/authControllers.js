@@ -16,7 +16,7 @@ const sendOtp = async (req, res) => {
     const { phone } = req.body;
 
     // Generate 6 digit OTP
-    const otp = otpGenerator.generate(6, { upperCase: false, specialChars: false });
+    const otp = otpGenerator.generate(6, {digits: true,  lowerCaseAlphabets: false, upperCaseAlphabets: false,  specialChars: false });
 
     // Save OTP to DB (expire in 5 mins)
     const user = await USER.findOneAndUpdate(
