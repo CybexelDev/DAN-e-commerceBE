@@ -22,6 +22,8 @@ const addProduct = async (req, res) => {
       description: req.body.description,
       category: req.body.category,
       categoryId: req.body.categoryId,
+      subCategory: req.body.category,
+      subCategoryId: req.body.categoryId,
       discount: req.body.discount || 0,
       date: req.body.date || Date.now(),
     });
@@ -33,6 +35,15 @@ const addProduct = async (req, res) => {
   }
 };
 
+
+const getProduct = async (req, res) => {
+  try {
+    const product = await PRODUCT.find();
+    res.json(product)
+  } catch (error) {
+    res.status(500).send(error)
+  }
+}
 
 const deleteProduct = async (req, res) => {
   try {
@@ -476,4 +487,5 @@ module.exports = {
   addTestimonials,
   updateTestimonials,
   deleteTestimonial,
+  getProduct,
 }
