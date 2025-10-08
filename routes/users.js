@@ -21,6 +21,7 @@ const { addUserData,
     getSingleProduct,
     getHeader,
     getBrand,
+    getCartSummary,
 } = require('../Controllers/userController')
 
 // router.post('/addUser', addUserData)
@@ -44,6 +45,7 @@ router.post('/applyVoucher', applyVoucher);
 router.get('/getTestimonials', getTestimonials);
 router.get('/header', getHeader);
 router.get('/getBrand', getBrand);
+router.get("/summary/:userId", getCartSummary);
 
 // ongoing
 

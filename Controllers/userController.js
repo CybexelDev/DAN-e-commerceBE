@@ -8,6 +8,7 @@ const VOUCHER = require('../Models/voucher')
 const TESTIMONIAL = require('../Models/testimonialModels')
 const HEADER = require('../Models/headerModels')
 const BRAND = require('../Models/brandModels')
+const mongoose = require("mongoose");
 // const addUserData =async(req,res)=>{
 
 //   try {
@@ -143,14 +144,42 @@ const addToCart = async (req, res) => {
 
 
 
+// const removeFromCart = async (req, res) => {
+//   try {
+//     const {productId, userId  } = req.body;
+//  console.log(req.body, "777777777777777");
+ 
+//     const updatedUser = await USER.findByIdAndUpdate(
+//       userId,
+//       {
+//         $pull: { cart: { productId: productId } }
+//       },
+//       { new: true }
+//     ).populate("cart.productId");
+
+//     if (!updatedUser) {
+//       return res.status(404).json({ message: "User not found" });
+//     }
+
+//     res.status(200).json({
+//       message: "Item removed from cart successfully",
+//       cart: updatedUser.cart
+//     });
+//   } catch (error) {
+//     res.status(500).json({ error: error.message });
+//   }
+// };
+
 const removeFromCart = async (req, res) => {
   try {
-    const { userId, productId } = req.body;
+    const { productId, userId } = req.body;
+    console.log(req.body, "remove cart req.body >>>>>>");
 
+    // 🟢 Ensure ObjectId type if your schema stores productId as ObjectId
     const updatedUser = await USER.findByIdAndUpdate(
       userId,
       {
-        $pull: { cart: { productId: productId } }
+        $pull: { cart: { productId: new mongoose.Types.ObjectId(productId) } }
       },
       { new: true }
     ).populate("cart.productId");
@@ -164,6 +193,7 @@ const removeFromCart = async (req, res) => {
       cart: updatedUser.cart
     });
   } catch (error) {
+    console.error("Error removing from cart:", error);
     res.status(500).json({ error: error.message });
   }
 };
@@ -202,13 +232,16 @@ const updateCartQuantity = async (req, res) => {
 // Get user cart
 const getCart = async (req, res) => {
   try {
-
-    console.log(req.query.userId, "yyyyyyyyyy");
-
     const userId = req.query.userId;
 
-    const user = await USER.findById(userId).populate("cart.productId", "productName rate images brandName");
+    const user = await USER.findById(userId)
+      .populate({
+        path: "cart.productId",
+        select: "productName rate images brandName discount", // select needed fields
+      })
+      .lean({ virtuals: true }); // <-- Important: enables virtuals on populate
 
+    // Now each product in user.cart will have "discountedRate"
     res.json({ cart: user.cart });
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -413,6 +446,62 @@ const getBrand = async (req, res) => {
   }
 };
 
+const getCartSummary = async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    if (!userId) {
+      return res.status(400).json({ error: "User ID is required" });
+    }
+
+    // Populate product details
+    const user = await USER.findById(userId).populate("cart.productId");
+
+    if (!user || user.cart.length === 0) {
+      return res.status(404).json({ message: "Cart is empty or user not found" });
+    }
+
+    let totalPrice = 0;
+    let totalDiscountedPrice = 0;
+
+    user.cart.forEach((item) => {
+      const product = item.productId;
+      if (!product) return;
+
+      const quantity = item.quantity || 1;
+      const rate = product.rate || 0;
+      const discountedRate = product.discountedRate || rate;
+
+      // ✅ Total actual price (without discount)
+      totalPrice += rate * quantity;
+
+      // ✅ Total discounted price using virtual field
+      totalDiscountedPrice += discountedRate * quantity;
+    });
+
+    const totalSavings = totalPrice - totalDiscountedPrice;
+
+    res.status(200).json({
+      message: "Cart summary fetched successfully",
+      totalItems: user.cart.length,
+      totalPrice,
+      totalDiscountedPrice,
+      totalSavings,
+      cart: user.cart.map((item) => ({
+        productId: item.productId._id,
+        productName: item.productId.productName,
+        rate: item.productId.rate,
+        discountedRate: item.productId.discountedRate,
+        quantity: item.quantity,
+        totalDiscountValue: (item.productId.rate - item.productId.discountedRate) * item.quantity, // 🧮 per product saving
+      })),
+    });
+  } catch (error) {
+    console.error("Error fetching cart summary:", error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
 
 
 module.exports = {
@@ -436,4 +525,5 @@ module.exports = {
   getTestimonials,
   getHeader ,
    getBrand,
+   getCartSummary,
 }
