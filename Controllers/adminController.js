@@ -167,6 +167,16 @@ const addCategory = async (req, res) => {
   }
 }
 
+const getcategory = async (req, res) => {
+  try {
+    const product = await CATEGORY.find();
+    res.json(product)
+  } catch (error) {
+    res.status(500).send(error)
+  }
+}
+
+
 const deleteCategory = async (req, res) => {
   try {
 
@@ -488,4 +498,5 @@ module.exports = {
   updateTestimonials,
   deleteTestimonial,
   getProduct,
+  getcategory,
 }

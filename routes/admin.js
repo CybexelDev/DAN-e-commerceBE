@@ -1,11 +1,12 @@
 var express = require('express');
-const { addProduct, addCategory, addBlogs, addHeader, addSubCategory, deleteProduct, updateProduct, deleteCategory, updateCategory, deleteHeader, deleteBlog, updateBlogs, addBrand, deleteBrand, addVoucher, addTestimonials, updateTestimonials, deleteTestimonial, getProduct } = require('../Controllers/adminController');
+const { addProduct, addCategory, addBlogs, addHeader, addSubCategory, deleteProduct, updateProduct, deleteCategory, updateCategory, deleteHeader, deleteBlog, updateBlogs, addBrand, deleteBrand, addVoucher, addTestimonials, updateTestimonials, deleteTestimonial, getProduct, getcategory } = require('../Controllers/adminController');
 const upload = require('../Middleware/upload');
 var router = express.Router();
 
 router.post('/addProduct', upload.array('images', 5), addProduct)
 router.get('/getProduct', getProduct)
 router.post('/addCategory', upload.array('images', 1),  addCategory)
+router.get('/getcategory', getcategory)
 router.post('/addBlog', upload.array('image', 1),  addBlogs)
 router.post('/addHeader', upload.array('image', 1),  addHeader)
 router.post('/addSubCategory',  addSubCategory)
