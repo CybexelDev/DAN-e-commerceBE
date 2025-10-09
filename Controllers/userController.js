@@ -84,6 +84,9 @@ const getPopularProduct = async (req, res) => {
           category: 1,
           discount: 1,
         }
+      },
+      {
+        $limit: 3 // 👈 Only return 3 popular products
       }
     ]);
 
