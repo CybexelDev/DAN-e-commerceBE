@@ -5,14 +5,14 @@ var router = express.Router();
 
 router.post('/addProduct', upload.array('images', 5), addProduct)
 router.get('/getProduct', getProduct)
-router.post('/addCategory', upload.array('images', 1),  addCategory)
+router.post('/addCategory', upload.array('image', 1),  addCategory)
 router.get('/getcategory', getcategory)
 router.post('/addBlog', upload.array('image', 1),  addBlogs)
 router.post('/addHeader', upload.array('image', 1),  addHeader)
 router.post('/addSubCategory',  addSubCategory)
-router.post('/deleteProduct', deleteProduct)
+router.delete('/deleteProduct/:id', deleteProduct)
 router.put("/product/:id", upload.array("images", 5), updateProduct);
-router.delete('/deleteCategory', deleteCategory)
+router.delete('/deleteCategory/:id', deleteCategory)
 router.put("/updateCategory/:id", upload.array("image", 1), updateCategory);
 router.delete('/deleteHeader', deleteHeader);
 router.delete('/deleteBlog', deleteBlog);

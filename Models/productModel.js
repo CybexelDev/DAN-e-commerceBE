@@ -8,7 +8,7 @@ const productSchema = new mongoose.Schema({
     starRating: Number,
     rate: Number,
     quantity: Number,
-    discription: String,
+    description: String,
     category: { type: String, required: true },
     categoryId: {type: String, required: true},
     subCategory: { type: String, required: false },

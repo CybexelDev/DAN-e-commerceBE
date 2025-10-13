@@ -10,6 +10,8 @@ const TESTIMONIAL = require('../Models/testimonialModels')
 
 const addProduct = async (req, res) => {
   try {
+    console.log(req.body, "bodyyyyyyyyyyy");
+    
     const imageUrls = req.files.map(file => file.path);
     const admin = new PRODUCT({
       brandName: req.body.brandName,
@@ -22,7 +24,7 @@ const addProduct = async (req, res) => {
       description: req.body.description,
       category: req.body.category,
       categoryId: req.body.categoryId,
-      subCategory: req.body.category,
+      subCategory: req.body.subCategory,
       subCategoryId: req.body.categoryId,
       discount: req.body.discount || 0,
       date: req.body.date || Date.now(),
@@ -47,7 +49,7 @@ const getProduct = async (req, res) => {
 
 const deleteProduct = async (req, res) => {
   try {
-    const productID = req.body.id;
+    const productID = req.params.id;
     console.log(productID, "nnnnnnnnnnnnnnn");
 
     const product = await PRODUCT.findByIdAndDelete(productID);
@@ -69,6 +71,8 @@ const deleteProduct = async (req, res) => {
 const updateProduct = async (req, res) => {
   try {
     const { id } = req.params;
+    console.log(id, "ppppppppppppppppppppppppppppp");
+    
 
     // Get existing product
     let product = await PRODUCT.findById(id);
@@ -180,7 +184,7 @@ const getcategory = async (req, res) => {
 const deleteCategory = async (req, res) => {
   try {
 
-    const categoryId = req.body.id
+    const categoryId = req.params.id
 
     const category = await CATEGORY.findByIdAndDelete(categoryId)
 
@@ -244,6 +248,7 @@ const updateCategory = async (req, res) => {
 // Add subcategory to an existing category
 const addSubCategory = async (req, res) => {
   try {
+    
     const { categoryId, subCategories } = req.body;
 
     if (!categoryId || !subCategories) {
