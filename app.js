@@ -15,11 +15,6 @@ const mongoose = require("mongoose");
 var app = express();
 connectDb()
 
-
-// view engine setup
-// app.set('views', path.join(__dirname, 'views'));
-// app.set('view engine', 'jade');
-
 app.use(cors({
   origin: "http://localhost:5173",
   methods: ["GET", "POST", "PUT", "DELETE"],
@@ -42,15 +37,20 @@ app.use(function(req, res, next) {
   next(createError(404));
 });
 
-// error handler
+// error handler - UPDATED FOR REACT FRONTEND
 app.use(function(err, req, res, next) {
-  // set locals, only providing error in development
-  res.locals.message = err.message;
-  res.locals.error = req.app.get('env') === 'development' ? err : {};
+  // Set locals, only providing error in development
+  const isDevelopment = req.app.get('env') === 'development';
   
-  // render the error page
+  // Return JSON error response instead of rendering
   res.status(err.status || 500);
-  res.render('error');
+  res.json({
+    error: {
+      message: err.message,
+      status: err.status || 500,
+      ...(isDevelopment && { stack: err.stack }) // Only include stack in development
+    }
+  });
 });
 
 module.exports = app;
