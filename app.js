@@ -17,8 +17,7 @@ connectDb()
 const PORT = process.env.PORT || 3000;
 
 app.use(cors({
-  // origin: "http://localhost:5173",
-  origin: "https://dan-ecommerce.vercel.app",
+  origin: ["https://dan-ecommerce.vercel.app", "http://localhost:5173"],
   methods: ["GET", "POST", "PUT", "DELETE"],
   credentials: true
 }));
@@ -43,9 +42,9 @@ app.get('/', (req, res) => {
   });
 });
 
-app.use('/users', usersRouter);
-app.use('/admin', adminRouter);
-app.use('/auth', authRouter);
+app.use('/api/users', usersRouter);
+app.use('/api/admin', adminRouter);
+app.use('/api/auth', authRouter);
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
