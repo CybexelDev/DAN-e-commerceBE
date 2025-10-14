@@ -43,9 +43,9 @@ app.get('/', (req, res) => {
   });
 });
 
-app.use('/api/users', usersRouter);
-app.use('/api/admin', adminRouter);
-app.use('/api/auth', authRouter);
+app.use('/users', usersRouter);
+app.use('/admin', adminRouter);
+app.use('/auth', authRouter);
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
