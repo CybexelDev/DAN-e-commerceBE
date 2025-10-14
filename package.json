@@ -2,10 +2,10 @@
   "name": "e-commercestore",
   "version": "0.0.0",
   "private": true,
+  "main": "app.js",
   "scripts": {
     "start": "node app.js",
-    "dev": "nodemon app.js",
-    "build": "npm install"
+    "dev": "nodemon app.js"
   },
   "dependencies": {
     "cloudinary": "^1.41.3",

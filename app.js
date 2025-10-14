@@ -17,7 +17,8 @@ connectDb()
 const PORT = process.env.PORT || 3000;
 
 app.use(cors({
-  origin: "http://localhost:5173",
+  // origin: "http://localhost:5173",
+  origin: "https://dan-ecommerce.vercel.app",
   methods: ["GET", "POST", "PUT", "DELETE"],
   credentials: true
 }));
@@ -28,13 +29,13 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 // app.use(express.static(path.join(__dirname, 'public')));
 
-// Add a simple root route to avoid 404
+
 app.get('/', (req, res) => {
   res.json({ 
     message: 'E-commerce API Server',
     status: 'Running ✅',
     timestamp: new Date().toISOString(),
-    endpoints: {
+    endpoints: {  
       auth: '/auth',
       users: '/users', 
       admin: '/admin'
@@ -42,9 +43,9 @@ app.get('/', (req, res) => {
   });
 });
 
-app.use('/users', usersRouter);
-app.use('/admin', adminRouter);
-app.use('/auth', authRouter);
+app.use('/api/users', usersRouter);
+app.use('/api/admin', adminRouter);
+app.use('/api/auth', authRouter);
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
