@@ -28,6 +28,20 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 // app.use(express.static(path.join(__dirname, 'public')));
 
+// Add a simple root route to avoid 404
+app.get('/', (req, res) => {
+  res.json({ 
+    message: 'E-commerce API Server',
+    status: 'Running ✅',
+    timestamp: new Date().toISOString(),
+    endpoints: {
+      auth: '/auth',
+      users: '/users', 
+      admin: '/admin'
+    }
+  });
+});
+
 app.use('/users', usersRouter);
 app.use('/admin', adminRouter);
 app.use('/auth', authRouter);
