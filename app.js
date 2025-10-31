@@ -11,6 +11,7 @@ var usersRouter = require('./routes/users');
 const adminRouter = require('./routes/admin');
 const authRouter = require('./routes/auth')
 const mongoose = require("mongoose");
+const stripe = require("stripe")(process.env.STRYPE_SECRET_KEY);
 
 var app = express();
 connectDb()

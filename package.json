@@ -24,6 +24,7 @@
     "multer-storage-cloudinary": "^4.0.0",
     "nodemailer": "^7.0.6",
     "otp-generator": "^4.0.1",
+    "stripe": "^19.1.0",
     "twilio": "^5.8.2"
   },
   "devDependencies": {
