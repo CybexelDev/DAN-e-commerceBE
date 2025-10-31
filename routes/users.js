@@ -22,6 +22,11 @@ const { addUserData,
     getHeader,
     getBrand,
     getCartSummary,
+    deleteAddress,
+    createCheckoutSession,
+    handlePaymentSuccess,
+    getUserOrders,
+    getCategoryPopularProduct
 } = require('../Controllers/userController')
 
 // router.post('/addUser', addUserData)
@@ -36,6 +41,7 @@ router.post("/addCart", addToCart);
 router.get("/getCart", getCart);
 router.post("/addAddress", addAddress);
 router.get("/getAddresses", getAddresses);
+router.post("/deleteAddress", deleteAddress);
 router.get("/getRelatedProduct", getRelatedProduct);
 router.get("/search", getSearch);
 router.get("/filtering", getFilter);
@@ -46,7 +52,10 @@ router.get('/getTestimonials', getTestimonials);
 router.get('/header', getHeader);
 router.get('/getBrand', getBrand);
 router.get("/summary/:userId", getCartSummary);
+router.post('/create-checkout-session', createCheckoutSession)
+router.post('/PaymentSuccess', handlePaymentSuccess);
+router.get('/getUserOrder/:userId', getUserOrders);
+router.get('/getCategoryPopularProduct', getCategoryPopularProduct);
 
-// ongoing
 
 module.exports = router;

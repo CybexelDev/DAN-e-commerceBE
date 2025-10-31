@@ -9,6 +9,11 @@ const TESTIMONIAL = require('../Models/testimonialModels')
 const HEADER = require('../Models/headerModels')
 const BRAND = require('../Models/brandModels')
 const mongoose = require("mongoose");
+const PricingBase = require('twilio/lib/rest/PricingBase');
+const stripe = require("stripe")(process.env.STRYPE_SECRET_KEY);
+const Order = require('../Models/orderModels');
+// const ObjectId = require('mongoose').Types.ObjectId
+
 // const addUserData =async(req,res)=>{
 
 //   try {
@@ -89,6 +94,8 @@ const getPopularProduct = async (req, res) => {
         $limit: 3
       }
     ]);
+
+
 
     res.status(200).json({
       message: "Popular products fetched successfully",
@@ -178,11 +185,10 @@ const removeFromCart = async (req, res) => {
     const { productId, userId } = req.body;
     console.log(req.body, "remove cart req.body >>>>>>");
 
-    // 🟢 Ensure ObjectId type if your schema stores productId as ObjectId
     const updatedUser = await USER.findByIdAndUpdate(
       userId,
       {
-        $pull: { cart: { productId: new mongoose.Types.ObjectId(productId) } }
+        $pull: { cart: { _id: new mongoose.Types.ObjectId(productId) } }
       },
       { new: true }
     ).populate("cart.productId");
@@ -206,12 +212,14 @@ const updateCartQuantity = async (req, res) => {
   try {
     const { userId, productId, quantity } = req.body;
 
+    console.log(req.body, "update cart quantity req.body >>>>>>");
+
     if (quantity < 1) {
       return res.status(400).json({ message: "Quantity must be at least 1" });
     }
 
     const updatedUser = await USER.findOneAndUpdate(
-      { _id: userId, "cart.productId": productId },
+      { _id: userId, "cart._id": productId },
       { $set: { "cart.$.quantity": quantity } },  // update only matched item
       { new: true }
     ).populate("cart.productId");
@@ -228,6 +236,67 @@ const updateCartQuantity = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
+
+
+// const updateCartQuantity = async (req, res) => {
+//   try {
+//     const { userId, productId, quantity } = req.body;
+
+//     console.log(req.body, "update cart quantity req.body >>>>>>");
+
+//     if (quantity < 1) {
+//       return res.status(400).json({ message: "Quantity must be at least 1" });
+//     }
+
+//     // Convert string IDs to ObjectId if they're strings
+//     const userObjectId = mongoose.Types.ObjectId.isValid(userId) 
+//       ? new mongoose.Types.ObjectId(userId) 
+//       : userId;
+    
+//     const productObjectId = mongoose.Types.ObjectId.isValid(productId)
+//       ? new mongoose.Types.ObjectId(productId)
+//       : productId;
+
+//     // First, check if user exists and has the product in cart
+//     const user = await USER.findById(userObjectId);
+//     if (!user) {
+//       return res.status(404).json({ message: "User not found" });
+//     }
+
+//     // Check if product exists in cart
+//     const cartItem = user.cart.find(item => 
+//       item.productId.toString() === productObjectId.toString()
+//     );
+    
+//     if (!cartItem) {
+//       return res.status(404).json({ message: "Product not found in cart" });
+//     }
+
+//     // Update using array position with explicit casting
+//     const updatedUser = await USER.findOneAndUpdate(
+//       { 
+//         _id: userObjectId, 
+//         "cart.productId": productObjectId 
+//       },
+//       { $set: { "cart.$.quantity": quantity } },
+//       { new: true }
+//     ).populate("cart.productId");
+
+//     if (!updatedUser) {
+//       return res.status(404).json({ message: "Failed to update cart quantity" });
+//     }
+
+//     res.status(200).json({
+//       message: "Cart quantity updated successfully",
+//       cart: updatedUser.cart
+//     });
+//   } catch (error) {
+//     console.error("Update cart error:", error);
+//     res.status(500).json({ error: error.message });
+//   }
+// };
+
 
 
 
@@ -281,6 +350,33 @@ const getAddresses = async (req, res) => {
     if (!user) return res.status(404).json({ error: "User not found" });
 
     res.status(200).json({ addresses: user.addresses });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+
+const deleteAddress = async (req, res) => {
+  try {
+    const { userId, addressId } = req.body;
+
+    if (!userId || !addressId) {
+      return res.status(400).json({ error: "userId and addressId are required" });
+    }
+
+    const user = await USER.findById(userId);
+    if (!user) return res.status(404).json({ error: "User not found" });
+
+    user.addresses = user.addresses.filter(
+      (addr) => addr._id.toString() !== addressId
+    );
+
+    await user.save();
+
+    res.status(200).json({
+      message: "Address deleted successfully",
+      addresses: user.addresses,
+    });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -507,6 +603,229 @@ const getCartSummary = async (req, res) => {
 
 
 
+const createCheckoutSession = async (req, res) => {
+  try {
+    const { userId, products } = req.body;
+
+    const initialItems = products.map((item) => ({
+      price_data: {
+        currency: "aed",
+        product_data: {
+          name: item.productName,
+        },
+        unit_amount: Math.round(item.discountedRate * 100),
+      },
+      quantity: item.quantity,
+    }));
+
+    const session = await stripe.checkout.sessions.create({
+      payment_method_types: ["card"],
+      line_items: initialItems,
+      mode: "payment",
+      success_url: `http://localhost:5173/checkout-success?session_id={CHECKOUT_SESSION_ID}&userId=${userId}`,
+      cancel_url: "http://localhost:5173/cart",
+      metadata: {
+        userId,
+        products: JSON.stringify(products),
+      },
+    });
+
+    res.status(200).json({ url: session.url });
+  } catch (error) {
+    console.error("Error creating checkout session:", error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+
+
+const handlePaymentSuccess = async (req, res) => {
+  console.log("handlePaymentSuccess called >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
+
+  console.log("Order model type6666666:", typeof Order);
+
+  try {
+    const { sessionId, userId } = req.body;
+
+    // ✅ 1. Retrieve the session from Stripe
+    const session = await stripe.checkout.sessions.retrieve(sessionId);
+    console.log("meta dattaaaaaaa:", session.metadata?.products);
+
+    // ✅ 2. Check if payment was successful
+    if (session.payment_status === "paid") {
+      // ✅ 3. Get products from metadata (you stored them when creating the session)
+
+      const products = session.metadata?.products
+        ? JSON.parse(session.metadata.products)
+        : [];
+
+      // ✅ 4. Create a new Order
+      const order = new Order({
+        userId,
+        products: products.map((p) => ({
+          productId: p.productId,
+          name: p.productName,
+          price: p.discountedRate,
+          quantity: p.quantity,
+        })),
+        totalAmount: session.amount_total / 100,
+        paymentStatus: "paid",
+        orderStatus : "pending",
+        paymentIntentId: session.payment_intent,
+      });
+
+      await order.save();
+
+      console.log("✅ Order saved successfully:", order);
+
+      return res.status(200).json({
+        success: true,
+        message: "Order created successfully",
+        order,
+      });
+    } else {
+      return res.status(400).json({
+        success: false,
+        message: "Payment not completed yet",
+      });
+    }
+  } catch (error) {
+    console.error("Error handling payment success:", error);
+    res.status(500).json({
+      success: false,
+      error: error.message,
+    });
+  }
+};
+
+
+const getUserOrders = async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    console.log(userId, "userId in getUserOrders >>>>>");
+    
+    if (!userId) {
+      return res.status(400).json({ message: "User ID is required" });
+    }
+
+    const orders = await Order.aggregate([
+     
+      { $match: { userId: new mongoose.Types.ObjectId(userId.toString()) } },
+
+      {
+        $lookup: {
+          from: "products", 
+          localField: "products.productId",
+          foreignField: "_id",
+          as: "productImages",
+        },
+      },
+
+      {
+        $addFields: {
+          products: {
+            $map: {
+              input: "$products",
+              as: "p",
+              in: {
+                $mergeObjects: [
+                  "$$p",
+                  {
+                    image: {
+                      $arrayElemAt: [
+                        {
+                          $getField: {
+                            field: "images",
+                            input: {
+                              $arrayElemAt: [
+                                {
+                                  $filter: {
+                                    input: "$productImages",
+                                    as: "pi",
+                                    cond: { $eq: ["$$pi._id", "$$p.productId"] },
+                                  },
+                                },
+                                0,
+                              ],
+                            },
+                          },
+                        },
+                        0,
+                      ],
+                    },
+                  },
+                ],
+              },
+            },
+          },
+        },
+      },
+
+      { $project: { productImages: 0 } },
+
+      { $sort: { createdAt: -1 } },
+    ]);
+
+    res.status(200).json({
+      success: true,
+      message: "Orders fetched successfully",
+      orders,
+    });
+  } catch (error) {
+    console.error("Error fetching orders:", error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+};
+
+
+
+
+const getCategoryPopularProduct = async (req, res) => {
+  try {
+    const { categoryId } = req.body; // 👈 read from body
+
+    if (!categoryId) {
+      return res.status(400).json({ message: "Category ID is required" });
+    }
+
+    const popular = await PRODUCT.aggregate([
+      {
+        $match: {
+          categoryId: new mongoose.Types.ObjectId(categoryId), // match categoryId
+          starRating: { $gte: 3.9 }, // only popular
+        },
+      },
+      {
+        $sort: { starRating: -1 },
+      },
+      {
+        $project: {
+          _id: 1,
+          images: 1,
+          productName: 1,
+          rate: 1,
+          category: 1,
+          discount: 1,
+        },
+      },
+    ]);
+
+    res.status(200).json({
+      success: true,
+      message: "Popular products fetched successfully",
+      data: popular,
+    });
+  } catch (error) {
+    console.error("Error fetching category popular products:", error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+};
+
+
+
+
+
 module.exports = {
   getProduct,
   getcategory,
@@ -526,7 +845,12 @@ module.exports = {
   updateCartQuantity,
   applyVoucher,
   getTestimonials,
-  getHeader ,
-   getBrand,
-   getCartSummary,
+  getHeader,
+  getBrand,
+  getCartSummary,
+  deleteAddress,
+  createCheckoutSession,
+  handlePaymentSuccess,
+  getUserOrders,
+  getCategoryPopularProduct
 }

@@ -10,7 +10,7 @@ const addressSchema = new mongoose.Schema({
   landmark: { type: String },
   city: { type: String, required: true },
   state: { type: String, required: true },
-  addressType: { type: String, enum: ["Home", "Work", "Other"], default: "Home" }
+  addressType: { type: String, enum: ["Home", "Work", "Other"], default: "Home" },
 });
 
 
