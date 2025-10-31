@@ -281,14 +281,7 @@ const addSubCategory = async (req, res) => {
 };
 
 
-const getBlogs = async (req, res) => {
-  try {
-    const blog = await BLOGS.find()
-    res.status(200).json(blog)
-  } catch (error) {
-    res.status(500).json({ error: error })
-  }
-}
+
 
 
 const addBlogs = async (req, res) => {
@@ -308,13 +301,19 @@ const addBlogs = async (req, res) => {
 }
 
 const deleteBlog = async (req, res) => {
+
   try {
+
     const id = req.body.blogId
+
     const blogs = await BLOGS.findByIdAndDelete(id)
+
     if (!blogs) {
       res.status(400).json({ message: "Blog not found!!" })
     }
+
     res.status(200).json({ message: "Blog deleted successfully", data: blogs })
+
   } catch (error) {
     res.status(500).json({ error: error })
   }
@@ -341,7 +340,8 @@ const addHeader = async (req, res) => {
 
 const deleteHeader = async (req, res) => {
   try {
-    const id = req.body.id
+
+    const id = req.body.headerId
 
     const header = await HEADER.findByIdAndDelete(id)
 
@@ -482,15 +482,6 @@ const deleteTestimonial = async (req, res) => {
   } 
 };
 
-const getHeader = async (req, res) => {
-  try {
-    const header = await HEADER.find();
-    res.status(200).json({ message: "Header fetched successfully", data: header });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-};
-
 
 module.exports = {
   addProduct,
@@ -513,6 +504,4 @@ module.exports = {
   deleteTestimonial,
   getProduct,
   getcategory,
-  getHeader,
-  getBlogs
 }
