@@ -100,6 +100,8 @@ const sendEmailOtp = async (req, res) => {
     await user.save();
 
     await sendEmail(email, "Email Verification OTP", `Your OTP is: ${otp}`);
+    console.log(`Sent OTP ${otp} to email ${email}`);
+    
 
     res.status(200).json({ message: "OTP sent to email" });
   } catch (error) {
